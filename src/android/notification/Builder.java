@@ -21,10 +21,13 @@
 
 package de.appplant.cordova.plugin.notification;
 
+import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
@@ -145,6 +148,12 @@ public final class Builder {
 
         if (sound != Uri.EMPTY && !isUpdate()) {
             builder.setSound(sound);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if(!isAppOnForeground(context) || options.getPrio() > 0){
+                    Ringtone r = RingtoneManager.getRingtone(context.getApplicationContext(), sound);
+                    r.play();
+                }
+            }
         }
 
         if (options.isWithProgressBar()) {
@@ -152,6 +161,9 @@ public final class Builder {
                     options.getProgressMaxValue(),
                     options.getProgressValue(),
                     options.isIndeterminateProgress());
+        } else {
+            // Only set this when no progressbar is used, to prevent a timer reset.
+            builder.setWhen(options.getWhen());
         }
 
         if (options.hasLargeIcon()) {
@@ -167,6 +179,21 @@ public final class Builder {
         applyContentReceiver(builder);
 
         return new Notification(context, options, builder);
+    }
+
+    private boolean isAppOnForeground(Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+        if (appProcesses == null) {
+            return false;
+        }
+        final String packageName = context.getPackageName();
+        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+            if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND && appProcess.processName.equals(packageName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -3,6 +3,9 @@ ChangeLog
 
 Please also read the [Upgrade Guide](https://github.com/katzer/cordova-plugin-local-notifications/wiki/Upgrade-Guide) for more information.
 
+#### Version 0.10.0 
+- fixed Android 8 notifications sound
+
 #### Version 0.8.5 (22.05.2017)
 - iOS 10
 

@@ -26,6 +26,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.AudioAttributes;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -119,7 +120,7 @@ public final class Builder {
             return new Notification(context, options);
         }
 
-        Uri sound     = options.getSound();
+        Uri sound = options.getSound();
         Bundle extras = new Bundle();
 
         extras.putInt(Notification.EXTRA_ID, options.getId());
@@ -146,13 +147,31 @@ public final class Builder {
                 .setTimeoutAfter(options.getTimeout())
                 .setLights(options.getLedColor(), options.getLedOn(), options.getLedOff());
 
+        String CHANNEL_ID = "my_channel_01";
+
+        builder.setChannelId(CHANNEL_ID);
+
         if (sound != Uri.EMPTY && !isUpdate()) {
             builder.setSound(sound);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                if(!isAppOnForeground(context) || options.getPrio() > 0){
+                builder.setSound(null);
+//            }
+//
+//                AudioAttributes audioAttributes = new AudioAttributes.Builder()
+//                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+////                        .setUsage(AudioAttributes.USAGE_ALARM)
+//                        .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+//                        .build();
+//
+//
+//
+//
+                if (!isAppOnForeground(context) || options.getPrio() > 0) {
                     Ringtone r = RingtoneManager.getRingtone(context.getApplicationContext(), sound);
                     r.play();
                 }
+            } else {
+                builder.setSound(sound);
             }
         }
 

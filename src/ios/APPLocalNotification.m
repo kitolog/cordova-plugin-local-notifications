@@ -100,14 +100,21 @@ UNNotificationPresentationOptions const OptionAlert = UNNotificationPresentation
 {
     NSArray* notifications = command.arguments;
 
+    UIApplicationState state = [UIApplication sharedApplication].applicationState;
     [self.commandDelegate runInBackground:^{
         for (NSDictionary* options in notifications) {
-            APPNotificationContent* notification;
+            BOOL isForeground=[[options valueForKey:@"foreground"] boolValue];
+            if((isForeground == YES) || state == UIApplicationStateBackground){
+                NSLog(@"SHOW notification");
+                APPNotificationContent* notification;
 
-            notification = [[APPNotificationContent alloc]
-                            initWithOptions:options];
+                notification = [[APPNotificationContent alloc]
+                                initWithOptions:options];
 
-            [self scheduleNotification:notification];
+                [self scheduleNotification:notification];
+            }else{
+                NSLog(@"SKIP foreground notification");
+            }
         }
 
         [self check:command];
